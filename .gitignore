@@ -1,0 +1,12 @@
+# Downloaded model files (several GB each)
+models/
+*.gguf
+
+# Benchmark scratch files
+results.csv
+
+# OS and editor junk
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
