@@ -2,11 +2,11 @@
 
 A quick start guide to running an LLM on your BC-250 **without** losing the ability to play games like you did before.
 
-Everything happens right on the BC-250's desktop. No SSH, no second computer. You'll download this repo, run one script that starts an AI in a container, and chat with it in a web browser. When you're done, you stop the container and everything goes back to normal.
+Everything happens right on the BC-250's desktop. No SSH, no second computer. You'll download this repo, run one script that starts an AI in a container, and chat with it in a web browser. It's a general-purpose chatbot: ask it questions, have it explain things, write code or help with writing. It can also read PDFs and look at images. When you're done, you stop the container and everything goes back to normal.
 
 ## Before you start
 
-You need a BC-250 running SteamOS with Podman and Git installed, and about 6 GB of free disk space. Check from Konsole (steps below):
+You need a BC-250 running SteamOS with Podman and Git installed, and about 9 GB of free disk space. Check from Konsole (steps below):
 
 ```bash
 podman --version
@@ -25,7 +25,7 @@ df -h ~
    git clone https://github.com/duncandoestech/bc250-local-ai.git
    cd bc250-local-ai
    ```
-4. Run the start script. It builds the container and downloads your first model (`Qwen2.5-Coder-7B-Instruct-GGUF:Q4_K_M`, about 5 GB). The first run takes a while.
+4. Run the start script. It builds the container and downloads the model (`Qwen3-VL-8B-Instruct`, about 8 GB: 6.7 GB for the model plus 1.2 GB for its image reader). The first run takes a while.
    ```bash
    bash start.sh
    ```
@@ -39,7 +39,50 @@ df -h ~
    http://localhost:8080
    ```
 
-## Part B - Stop the AI and go back to gaming
+## Part B - Try it
+
+Everything below uses the same running model, so there's nothing to restart.
+
+**1. Just chat**
+
+Type a question like you would to any chatbot. A few ideas:
+```
+Explain how a graphics card works like I'm 12.
+```
+```
+Write a bash script that backs up my Steam screenshots folder to a USB drive.
+```
+```
+Give me 5 tips to get more FPS on a PC with 16 GB of shared memory.
+```
+
+It answers from what it learned in training. It can't browse the web, and it can be confidently wrong on very specific or recent facts, so double-check anything important.
+
+**2. Read a PDF**
+
+1. Click the paperclip in the chat box and pick a PDF. Short ones (1 to 3 pages) work best. A longer PDF gets cut off, and the model only summarizes the part it saw.
+2. Ask something like:
+   ```
+   Summarize this PDF in 5 bullet points.
+   ```
+   ```
+   What are the 3 most important numbers in this document and what do they mean?
+   ```
+
+If the answer looks thin or wrong, the PDF is probably a scan (pictures of pages, with no text inside). Open the web page's Settings and turn on the option to process PDFs as images, then try again. Each page then takes a few seconds.
+
+**3. Look at an image**
+
+1. Start a new chat so the PDF isn't taking up memory.
+2. Attach a screenshot or photo with the paperclip and ask:
+   ```
+   Read everything in this screenshot and explain what it shows.
+   ```
+   Ideas: a game's graphics settings ("which of these should I lower for more FPS?"), a photo of the BC-250 board ("what parts can you identify?"), or a screenshot of a page from the PDF you just used.
+
+The BC-250 spends a few seconds looking at each image before it starts answering. That's normal.
+
+## Part C - Stop the AI and go back to gaming
 
 1. Stop the container. This frees the GPU and memory.
    ```bash
@@ -65,7 +108,7 @@ podman run -d --rm --name llama \
   -v "$PWD/models:/models" \
   -p 127.0.0.1:8080:8080 \
   ghcr.io/ggml-org/llama.cpp:server-vulkan \
-  -hf Qwen/Qwen2.5-Coder-7B-Instruct-GGUF:Q4_K_M \
+  -hf unsloth/Qwen3-VL-8B-Instruct-GGUF:Q6_K \
   -ngl 99 -c 8192 -fa on \
   --cache-type-k q8_0 --cache-type-v q8_0
 ```
@@ -79,7 +122,7 @@ podman run -d --rm --name llama \
 - *-v "$PWD/models:/models":* links that `/models` to the `models` folder in this repo, so downloads persist after the container is gone.
 - *-p 127.0.0.1:8080:8080:* makes the server's web page reachable on port 8080, from this computer only.
 - *ghcr.io/ggml-org/llama.cpp:server-vulkan:* the official llama.cpp server build with Vulkan support. It's the same Vulkan stack you already use on the host.
-- *-hf Qwen/Qwen2.5-Coder-7B-Instruct-GGUF:Q4_K_M:* downloads the model from Hugging Face on first run. `Q4_K_M` picks the quantization (a 4-bit compression).
+- *-hf unsloth/Qwen3-VL-8B-Instruct-GGUF:Q6_K:* downloads the model from Hugging Face on first run. `Q6_K` picks the quantization (a 6-bit compression). Because this repo also has an `mmproj` file (the image reader), llama.cpp downloads that too, which is what lets the model see images.
 - *-ngl 99:* puts all model layers on the GPU. Any number at or above the layer count means "all of them".
 - *-c 8192:* the context window, meaning how much text the model can hold in mind at once. Larger values use more memory.
 - *-fa on:* turns on flash attention, which uses less memory and runs faster.
@@ -93,7 +136,7 @@ Put these in front of the command. They're all optional.
 
 | Setting | Default | What it does |
 |---|---|---|
-| `MODEL` | `Qwen/Qwen2.5-Coder-7B-Instruct-GGUF:Q4_K_M` | Which model to download and run |
+| `MODEL` | `unsloth/Qwen3-VL-8B-Instruct-GGUF:Q6_K` | Which model to download and run |
 | `CTX` | `8192` | Context size. Bigger uses more memory |
 | `PORT` | `8080` | Port for the web page |
 | `BIND` | `127.0.0.1` | Who can reach it. `0.0.0.0` means other devices on your network |
