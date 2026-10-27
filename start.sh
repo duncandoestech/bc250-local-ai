@@ -3,7 +3,7 @@
 # Run from anywhere:  bash start.sh
 #
 # Optional settings (put them in front of the command):
-#   MODEL=Qwen/Qwen2.5-Coder-7B-Instruct-GGUF:Q4_K_M   which model to download and run
+#   MODEL=unsloth/Qwen3-VL-8B-Instruct-GGUF:Q6_K       which model to download and run
 #   CTX=8192                                           context size (bigger = more memory)
 #   BIND=127.0.0.1                                     use 0.0.0.0 to reach it from other devices
 #   PORT=8080                                          port for the web page
@@ -12,7 +12,7 @@
 set -e
 cd "$(dirname "$0")"
 
-MODEL="${MODEL:-Qwen/Qwen2.5-Coder-7B-Instruct-GGUF:Q4_K_M}"
+MODEL="${MODEL:-unsloth/Qwen3-VL-8B-Instruct-GGUF:Q6_K}"
 CTX="${CTX:-8192}"
 BIND="${BIND:-127.0.0.1}"
 PORT="${PORT:-8080}"
